@@ -3,11 +3,12 @@
 }
 
 function login() {
-    if (document.getElementById("txtUsuario").value === "") {
+    var elemento = document.getElementById("txtUsuario").value;
+    if (elemento === "") {
         alert("Nombre vacío");
         return;
     }
-    sessionStorage.setItem("nombre", document.getElementById("txtUsuario").value);
+    sessionStorage.setItem("nombre", elemento);
     location.replace("pupitres.html");
 
 }

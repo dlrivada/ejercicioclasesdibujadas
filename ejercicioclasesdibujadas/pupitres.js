@@ -1,38 +1,44 @@
 ﻿"use strict";
 
-
 if (!sessionStorage.getItem("nombre")) {
     location.replace("index.html");
 }
 
-
 $(document).ready(function() {
     var url = "https://alumnoscurso.azure-mobile.net/Tables/clase05";
+    var disposicion = [];
 
     function procesarJson(datos) {
-        var strTabla = "";
+        var canvas = document.getElementById("divCanvas");
+        var ctx = canvas.getContext("2d");
 
-        $.each(datos, function (key, fila) {
-            $("#img1").clone().appendTo("#divCanvas");
-
-            strTabla += "<tr><td>" + fila.x + "</td><td>" + fila.y + "</td><td>" + fila.w + "</td><td>" + fila.h + "</td><td>" + fila.nombre + "</td></tr>";
-        });
-
-        $("#cursos").html(strTabla);
+        ctx.fillStyle ="red";
+        ctx.fillRect(datos.x, datos.y, datos.w, datos.h);
     }
 
-    function cargarDatos() {
-        $.getJSON(url, null, procesarJson);
+    function recuperarOffline() {
+        var longitud = 0;
+
+        if (localStorage["elementos"]) {
+            disposicion = JSON.parse(localStorage("elementos"));
+            longitud = disposicion.length;
+            for (var i = 0; i < longitud; i++) {
+                procesarJson(disposicion[i]);
+            }
+        }
     }
 
-    var alta = function () {
+    var guardar = function () {
         var data = {
             nombre: sessionStorage.getItem("nombre"),
             x: $("#txtX").val(),
             y: $("#txtY").val(),
             w: $("#txtW").val(),
-            h: $("#txtH").val(),
+            h: $("#txtH").val()
         }
+
+        disposicion.push(data);
+        procesarJson(data);
 
         $.ajax({
             method: "POST",
@@ -43,17 +49,29 @@ $(document).ready(function() {
                 "Content-Type": "application/json"
             },
             success: function () {
-                cargarDatos();
+                alert("Guardado");
             },
             error: function () {
                 alert("Error al guardar");
             }
         });
+        localStorage["elemtos"] = JSON.stringify(disposicion);
     }
 
-    cargarDatos();
 
-    $("#btnRecargar").click(cargarDatos);
-    $("#btnOk").click(alta);
+    function refrescar() {
+        var filtro = "?$filter=nombre eq '" + localStorage["nombre"] + "'";
+        $.get(url + filtro, null, function(res) {
+            var l = res.length;
+            for (var i = 0; i < l; i++) {
+                procesarJson(res[i]);
+            }
+        } );
+    }
+
+    //cargarDatos();
+
+    $("#btnRecargar").click(refrescar);
+    $("#btnOk").click(guardar);
 
 });
